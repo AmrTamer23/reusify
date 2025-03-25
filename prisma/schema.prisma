@@ -23,6 +23,7 @@ model User {
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  snippets      Snippet[]
 
   @@map("user")
 }
@@ -70,4 +71,21 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model Snippet {
+  id        String    @id @default(uuid())
+  title     String
+  content   String
+  language  String   
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  tags      Tag[]     @relation("SnippetTags")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+model Tag {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  snippets  Snippet[] @relation("SnippetTags")
 }
