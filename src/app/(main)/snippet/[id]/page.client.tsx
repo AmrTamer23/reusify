@@ -20,10 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Copy, Save, Trash } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Save,
+  Trash,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Snippet, Tag } from "@prisma/client";
 import { updateSnippet, deleteSnippet } from "@/app/actions/snippets";
+import { CodePreview } from "@/components/CodePreview";
 
 const languages = [
   "JavaScript",
@@ -62,6 +70,17 @@ export function SnippetClientView({
   const [selectedTags, setSelectedTags] = useState<string[]>(
     snippetData?.tags.map((tag) => tag.name) || []
   );
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Determine if code is long enough to need expansion
+  const hasLongCode = (snippet?.content.split("\n").length ?? 0) > 15;
+
+  // Calculate how many lines to show based on expanded state
+  const displayLines = isExpanded ? 1000 : 15;
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
 
   if (!snippet) {
     return (
@@ -180,11 +199,6 @@ export function SnippetClientView({
               <CardTitle className="text-4xl font-semibold">
                 {snippet.title}
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={handleCopy}>
-                  <Copy className="h-5 w-5" />
-                </Button>
-              </div>
             </div>
           )}
         </CardHeader>
@@ -259,7 +273,55 @@ export function SnippetClientView({
             )}
           </div>
 
-          {isEditing ? (
+          {!isEditing ? (
+            <div className="relative">
+              <div className="relative">
+                <CodePreview
+                  code={snippet.content}
+                  language={snippet.language}
+                  preview={true}
+                  maxLines={displayLines}
+                />
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={handleCopy}
+                >
+                  <Copy className="h-4 w-4 mr-1" /> Copy
+                </Button>
+
+                {!isExpanded && hasLongCode && (
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-center items-center h-16 bg-gradient-to-t from-background to-transparent pointer-events-none">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 pointer-events-auto shadow-sm"
+                      onClick={toggleExpand}
+                    >
+                      <ChevronDown size={16} />
+                      Show more
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {isExpanded && hasLongCode && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={toggleExpand}
+                  >
+                    <ChevronUp size={16} />
+                    Show less
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
             <Textarea
               value={snippet.content}
               onChange={(e) =>
@@ -268,12 +330,6 @@ export function SnippetClientView({
               className="font-mono text-sm min-h-[200px]"
               placeholder="Paste your code snippet here"
             />
-          ) : (
-            <div className="relative">
-              <pre className="bg-secondary/50 p-4 rounded-md overflow-x-auto font-mono text-sm leading-relaxed">
-                <code>{snippet.content}</code>
-              </pre>
-            </div>
           )}
 
           <div className="flex justify-between text-sm text-muted-foreground mt-4">

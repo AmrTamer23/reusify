@@ -2,18 +2,12 @@
 
 import React, { use, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Copy, Code } from "lucide-react";
+import { Code } from "lucide-react";
 
-import { Snippet } from "@prisma/client";
+import { Snippet, Tag } from "@prisma/client";
 
 // Sample data - would be fetched from API in a real app
 const languages = [
@@ -39,10 +33,38 @@ const tags = [
   "Algorithm",
 ];
 
+function getLanguageColor(language: string): string {
+  const colors: Record<string, string> = {
+    JavaScript: "#f7df1e",
+    TypeScript: "#3178c6",
+    Python: "#3776ab",
+    Rust: "#dea584",
+    Go: "#00add8",
+    HTML: "#e34c26",
+    CSS: "#264de4",
+    SQL: "#e38c00",
+    Bash: "#3e474a",
+  };
+  return colors[language] || "#6b7280";
+}
+
+function formatDate(date: Date): string {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function getContentLengthLabel(content: string): string {
+  const lines = content.split("\n").length;
+  return `${lines} line${lines === 1 ? "" : "s"}`;
+}
+
 export function HomePageClient({
   snippetsPromise,
 }: {
-  snippetsPromise: Promise<Snippet[]>;
+  snippetsPromise: Promise<(Snippet & { tags: Tag[] })[]>;
 }) {
   const [activeLanguage, setActiveLanguage] = useState<string | null>(null);
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -146,42 +168,45 @@ export function HomePageClient({
           ) : (
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full flex-1">
               {filteredSnippets.map((snippet) => (
-                <Card key={snippet.id} className="overflow-hidden">
-                  <Link href={`/snippet/${snippet.id}`}>
+                <Card
+                  key={snippet.id}
+                  className="overflow-hidden hover:shadow-md transition-all border-l-4"
+                  style={{
+                    borderLeftColor: getLanguageColor(snippet.language),
+                  }}
+                >
+                  <Link
+                    href={`/snippet/${snippet.id}`}
+                    className="block h-full"
+                  >
                     <CardHeader className="pb-2 pt-4 px-4">
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-medium">
+                        <CardTitle className="text-lg font-medium line-clamp-2">
                           {snippet.title}
                         </CardTitle>
-                        {/* {snippet.isFavorite && (
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        )} */}
                       </div>
                     </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant="secondary">{snippet.language}</Badge>
+                        {snippet.tags.slice(0, 3).map((tag) => (
+                          <Badge key={tag.id} variant="outline">
+                            {tag.name}
+                          </Badge>
+                        ))}
+                        {snippet.tags.length > 3 && (
+                          <Badge variant="outline">
+                            +{snippet.tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground">
+                        <span>{formatDate(snippet.updatedAt)}</span>
+                        <span>{getContentLengthLabel(snippet.content)}</span>
+                      </div>
+                    </CardContent>
                   </Link>
-                  <CardContent className="p-4 pt-0">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary">{snippet.language}</Badge>
-                      {/* {snippet.tags.map((tag) => (
-                        <Badge key={tag} variant="outline">
-                          {tag}
-                        </Badge>
-                      ))} */}
-                    </div>
-                    <pre className="bg-secondary/50 p-3 rounded-md overflow-x-auto font-mono text-xs leading-relaxed max-h-32">
-                      <code>{snippet.content}</code>
-                    </pre>
-                  </CardContent>
-                  <CardFooter className="flex justify-between py-2 px-4 bg-muted/50">
-                    {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span>{snippet.createdAt}</span>
-                    </div> */}
-                    <Button variant="ghost" size="sm" className="h-8 px-2">
-                      <Copy className="h-3.5 w-3.5 mr-1" />
-                      Copy
-                    </Button>
-                  </CardFooter>
                 </Card>
               ))}
             </div>
