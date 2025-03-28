@@ -6,12 +6,11 @@ import { db } from "../../../../../prisma/instance";
 export default async function SnippetPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  // Fetch the snippet data on the server
   const snippetPromise = db.snippet.findUnique({
     where: {
-      id: params.id,
+      id: (await params).id,
     },
     include: {
       tags: true,
