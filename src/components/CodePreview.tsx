@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createHighlighter } from "shiki";
 import { useTheme } from "next-themes";
@@ -61,15 +61,18 @@ export function CodePreview({
   };
 
   // Get code preview for card display
-  const getPreviewCode = (fullCode: string): string => {
-    if (!preview) return fullCode;
+  const getPreviewCode = useCallback(
+    (fullCode: string): string => {
+      if (!preview) return fullCode;
 
-    const lines = fullCode.split("\n");
-    if (lines.length > maxLines) {
-      return lines.slice(0, maxLines).join("\n") + "\n// ...";
-    }
-    return fullCode;
-  };
+      const lines = fullCode.split("\n");
+      if (lines.length > maxLines) {
+        return lines.slice(0, maxLines).join("\n") + "\n// ...";
+      }
+      return fullCode;
+    },
+    [preview, maxLines]
+  );
 
   useEffect(() => {
     async function highlight() {
@@ -96,7 +99,7 @@ export function CodePreview({
     }
 
     highlight();
-  }, [code, language, preview, maxLines, theme]);
+  }, [code, language, preview, maxLines, theme, getPreviewCode]);
 
   if (isLoading) {
     return <Skeleton className="h-20 w-full" />;

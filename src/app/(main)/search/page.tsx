@@ -38,9 +38,9 @@ function getContentLengthLabel(content: string): string {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const query = searchParams.q || "";
+  const query = (await searchParams).q || "";
   const session = await auth.api.getSession({
     headers: await headers(),
   });
