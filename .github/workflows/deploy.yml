@@ -35,7 +35,6 @@ jobs:
           # Copy application files to server
           scp -r ./* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
           scp -r ./.github ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
-          scp .env.example ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
 
       - name: Create environment file
         env:
