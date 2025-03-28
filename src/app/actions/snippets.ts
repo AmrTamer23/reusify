@@ -129,3 +129,39 @@ export async function deleteSnippet(id: string) {
     return { success: false, error: (error as Error).message };
   }
 }
+
+export async function searchSnippets(query: string) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user) {
+      throw new Error("Not authenticated");
+    }
+
+    const snippets = await prisma.snippet.findMany({
+      where: {
+        userId: session.user.id,
+        OR: [
+          { title: { contains: query, mode: "insensitive" } },
+          { content: { contains: query, mode: "insensitive" } },
+          {
+            tags: { some: { name: { contains: query, mode: "insensitive" } } },
+          },
+        ],
+      },
+      include: {
+        tags: true,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return { success: true, snippets };
+  } catch (error) {
+    console.error("Failed to search snippets:", error);
+    return { success: false, error: (error as Error).message };
+  }
+}
