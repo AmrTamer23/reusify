@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Code } from "lucide-react";
 
-import { Snippet, Tag } from "@prisma/client";
+import type { Snippet, Tag } from "@prisma/client";
 
 // Sample data - would be fetched from API in a real app
 const languages = [

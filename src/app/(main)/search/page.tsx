@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Code } from "lucide-react";
-import { Snippet, Tag } from "@prisma/client";
 
 function getLanguageColor(language: string): string {
   const colors: Record<string, string> = {
@@ -57,8 +56,7 @@ export default async function SearchPage({
   }
 
   const result = await searchSnippets(query);
-  const snippets: (Snippet & { tags: Tag[] })[] =
-    result.success && result.snippets ? result.snippets : [];
+  const snippets = result.success && result.snippets ? result.snippets : [];
 
   return (
     <div className="py-6">

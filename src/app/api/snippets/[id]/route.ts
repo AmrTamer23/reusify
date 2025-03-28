@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+
 import { auth } from "@/lib/auth";
+import { db } from "../../../../../prisma/instance";
 
-const prisma = new PrismaClient();
-
-// GET a snippet by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id;
-    const snippet = await prisma.snippet.findUnique({
+    const snippet = await db.snippet.findUnique({
       where: { id },
       include: {
         tags: true,
@@ -39,7 +37,6 @@ export async function GET(
   }
 }
 
-// PUT (update) a snippet
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -57,7 +54,7 @@ export async function PUT(
     const { title, content, language, tags } = body;
 
     // Verify the snippet exists and belongs to the user
-    const existingSnippet = await prisma.snippet.findUnique({
+    const existingSnippet = await db.snippet.findUnique({
       where: { id },
       select: { userId: true },
     });
@@ -89,7 +86,7 @@ export async function PUT(
     }
 
     // Update the snippet
-    const updatedSnippet = await prisma.snippet.update({
+    const updatedSnippet = await db.snippet.update({
       where: { id },
       data: {
         title: title,
@@ -129,7 +126,7 @@ export async function DELETE(
     const id = params.id;
 
     // Verify the snippet exists and belongs to the user
-    const existingSnippet = await prisma.snippet.findUnique({
+    const existingSnippet = await db.snippet.findUnique({
       where: { id },
       select: { userId: true },
     });
@@ -149,7 +146,7 @@ export async function DELETE(
     }
 
     // Delete the snippet
-    await prisma.snippet.delete({
+    await db.snippet.delete({
       where: { id },
     });
 

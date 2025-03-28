@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { SnippetClientView } from "./page.client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
-
-const prisma = new PrismaClient();
+import { db } from "../../../../../prisma/instance";
 
 export default async function SnippetPage({
   params,
@@ -11,7 +9,7 @@ export default async function SnippetPage({
   params: { id: string };
 }) {
   // Fetch the snippet data on the server
-  const snippetPromise = prisma.snippet.findUnique({
+  const snippetPromise = db.snippet.findUnique({
     where: {
       id: params.id,
     },

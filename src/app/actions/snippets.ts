@@ -1,10 +1,9 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-
-const prisma = new PrismaClient();
+import { db } from "../../../prisma/instance";
+import type { Snippet } from "@prisma/client";
 
 export async function createSnippet(data: {
   title: string;
@@ -21,7 +20,7 @@ export async function createSnippet(data: {
       throw new Error("Not authenticated");
     }
 
-    const snippet = await prisma.snippet.create({
+    const snippet = await db.snippet.create({
       data: {
         title: data.title,
         language: data.language,
@@ -59,7 +58,7 @@ export async function updateSnippet(data: {
       throw new Error("Not authenticated");
     }
 
-    const existingSnippet = await prisma.snippet.findUnique({
+    const existingSnippet = await db.snippet.findUnique({
       where: { id: data.id },
     });
 
@@ -71,7 +70,7 @@ export async function updateSnippet(data: {
       throw new Error("You don't have permission to update this snippet");
     }
 
-    const updatedSnippet = await prisma.snippet.update({
+    const updatedSnippet = await db.snippet.update({
       where: { id: data.id },
       data: {
         title: data.title,
@@ -107,7 +106,7 @@ export async function deleteSnippet(id: string) {
       throw new Error("Not authenticated");
     }
 
-    const existingSnippet = await prisma.snippet.findUnique({
+    const existingSnippet = await db.snippet.findUnique({
       where: { id },
     });
 
@@ -119,7 +118,7 @@ export async function deleteSnippet(id: string) {
       throw new Error("You don't have permission to delete this snippet");
     }
 
-    await prisma.snippet.delete({
+    await db.snippet.delete({
       where: { id },
     });
 
@@ -140,26 +139,40 @@ export async function searchSnippets(query: string) {
       throw new Error("Not authenticated");
     }
 
-    const snippets = await prisma.snippet.findMany({
-      where: {
-        userId: session.user.id,
-        OR: [
-          { title: { contains: query, mode: "insensitive" } },
-          { content: { contains: query, mode: "insensitive" } },
-          {
-            tags: { some: { name: { contains: query, mode: "insensitive" } } },
-          },
-        ],
-      },
-      include: {
-        tags: true,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-    });
+    const rawResults = await db.$queryRaw`
+      SELECT s.* 
+      FROM "Snippet" s
+      LEFT JOIN "_SnippetTags" st ON s."id" = st."A"
+      LEFT JOIN "Tag" t ON st."B" = t."id"
+      WHERE s."userId" = ${session.user.id}
+      AND (
+        LOWER(s."title") LIKE ${`%${query.toLowerCase()}%`} 
+        OR LOWER(s."content") LIKE ${`%${query.toLowerCase()}%`}
+        OR LOWER(t."name") LIKE ${`%${query.toLowerCase()}%`}
+      )
+      GROUP BY s."id"
+      ORDER BY s."updatedAt" DESC
+    `;
 
-    return { success: true, snippets };
+    const snippetsWithTags = [];
+    for (const rawSnippet of rawResults as Snippet[]) {
+      const tags = await db.tag.findMany({
+        where: {
+          snippets: {
+            some: {
+              id: rawSnippet.id,
+            },
+          },
+        },
+      });
+
+      snippetsWithTags.push({
+        ...rawSnippet,
+        tags,
+      });
+    }
+
+    return { success: true, snippets: snippetsWithTags };
   } catch (error) {
     console.error("Failed to search snippets:", error);
     return { success: false, error: (error as Error).message };

@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { db } from "../../prisma/instance";
 
 export interface Snippet {
   id: string;
@@ -20,7 +18,7 @@ export interface Snippet {
  */
 export async function getSnippetById(id: string): Promise<Snippet | null> {
   try {
-    const snippet = await prisma.snippet.findUnique({
+    const snippet = await db.snippet.findUnique({
       where: { id },
       include: { tags: true },
     });
@@ -48,7 +46,7 @@ export async function updateSnippet(
     // If tags are provided, handle the tag relationships
     if (data.tags) {
       // First disconnect all existing tags
-      await prisma.snippet.update({
+      await db.snippet.update({
         where: { id },
         data: {
           tags: {
@@ -58,7 +56,7 @@ export async function updateSnippet(
       });
 
       // Then connect the new tags, creating any that don't exist
-      const snippet = await prisma.snippet.update({
+      const snippet = await db.snippet.update({
         where: { id },
         data: {
           title: data.title,
@@ -77,7 +75,7 @@ export async function updateSnippet(
       return snippet;
     } else {
       // If no tags provided, just update the snippet data
-      const snippet = await prisma.snippet.update({
+      const snippet = await db.snippet.update({
         where: { id },
         data: {
           title: data.title,

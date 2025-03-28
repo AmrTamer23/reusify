@@ -29,7 +29,7 @@ import {
   Trash,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Snippet, Tag } from "@prisma/client";
+import type { Snippet, Tag } from "@prisma/client";
 import { updateSnippet, deleteSnippet } from "@/app/actions/snippets";
 import { CodePreview } from "@/components/CodePreview";
 
