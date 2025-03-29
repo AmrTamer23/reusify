@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ function FieldError({ errors }: { errors: string[] }) {
 export default function RegisterPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm({
     defaultValues: {
@@ -67,6 +68,36 @@ export default function RegisterPage() {
       }
     },
   });
+
+  useEffect(() => {
+    // Check for authenticated user and redirect if found
+    const checkAuth = async () => {
+      try {
+        // Check if there's a session token cookie to detect authentication
+        const hasCookie = document.cookie.includes("reusify.session_token");
+        if (hasCookie) {
+          router.push("/");
+          return;
+        }
+      } catch (error) {
+        // Continue to the registration page if there's an error
+        console.error("Auth check error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Show loading indicator while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-background">

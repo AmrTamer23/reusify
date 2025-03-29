@@ -31,12 +31,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string>("");
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
-
-  useEffect(() => {
-    if (searchParams?.get("registered") === "true") {
-      setShowRegistrationSuccess(true);
-    }
-  }, [searchParams]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm({
     defaultValues: {
@@ -67,6 +62,42 @@ function LoginForm() {
       }
     },
   });
+
+  useEffect(() => {
+    // Check for authenticated user and redirect if found
+    const checkAuth = async () => {
+      try {
+        // Check if there's a session token cookie to detect authentication
+        const hasCookie = document.cookie.includes("reusify.session_token");
+        if (hasCookie) {
+          router.push("/");
+          return;
+        }
+      } catch (error) {
+        // Continue to the login page if there's an error
+        console.error("Auth check error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (searchParams?.get("registered") === "true") {
+      setShowRegistrationSuccess(true);
+    }
+  }, [searchParams]);
+
+  // Show loading indicator while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-background">

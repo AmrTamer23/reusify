@@ -4,7 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { MoonIcon, SunIcon, PlusIcon } from "lucide-react";
+import {
+  MoonIcon,
+  SunIcon,
+  PlusIcon,
+  LogOutIcon,
+  UserIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +18,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { authClient } from "@/lib/auth.client";
 
 export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,6 +126,31 @@ export function Navbar() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTheme("system")}>
                 System
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full ml-2"
+              >
+                <UserIcon className="h-[1.2rem] w-[1.2rem]" />
+                <span className="sr-only">User menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  authClient.signOut();
+                  router.push("/login");
+                }}
+              >
+                <LogOutIcon className="h-4 w-4 mr-2" />
+                Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
