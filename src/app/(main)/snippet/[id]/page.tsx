@@ -26,7 +26,7 @@ export default async function SnippetPage({
 
 function SnippetSkeleton() {
   return (
-    <div className="container py-6 md:py-10">
+    <div className="container py-6 md:py-10 mx-auto">
       <div className="mb-6 flex items-center gap-4">
         <Skeleton className="h-10 w-10 rounded-md" />
         <Skeleton className="h-8 w-48" />

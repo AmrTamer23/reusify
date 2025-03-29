@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Header() {
+export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const { setTheme, theme } = useTheme();
   const router = useRouter();
@@ -47,7 +47,7 @@ export function Header() {
             href="/"
             className="flex items-center justify-center gap-0.5 font-mono"
           >
-            <span className="font-bold tracking-tight text-xl">Reusify</span>
+            <span className="font-bold tracking-tight text-3xl">Reusify</span>
           </Link>
         </div>
 

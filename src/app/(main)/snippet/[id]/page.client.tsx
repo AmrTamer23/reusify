@@ -72,10 +72,8 @@ export function SnippetClientView({
   );
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Determine if code is long enough to need expansion
   const hasLongCode = (snippet?.content.split("\n").length ?? 0) > 15;
 
-  // Calculate how many lines to show based on expanded state
   const displayLines = isExpanded ? 1000 : 15;
 
   const toggleExpand = () => {
@@ -157,7 +155,7 @@ export function SnippetClientView({
 
       if (result.success) {
         toast.success("Snippet deleted successfully");
-        // Redirect to home page
+
         window.location.href = "/";
       } else {
         toast.error(result.error || "Failed to delete snippet");
