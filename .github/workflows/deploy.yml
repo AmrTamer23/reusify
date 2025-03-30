@@ -60,4 +60,4 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           # Build and start the application on the server
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && docker compose build app && docker compose down && docker compose up -d app"
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && pnpm i && pnpm build && pm2 restart"
