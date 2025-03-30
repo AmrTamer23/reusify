@@ -33,25 +33,55 @@ jobs:
           NODE_ENV=production
           BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
-          # Make sure Turso URL starts with libsql:// or https://
-          TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }}
-          TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}
+          # Use mock database URL for build time to avoid connection issues
+          TURSO_DATABASE_URL=libsql://mock-db-for-build.turso.io
+          TURSO_AUTH_TOKEN=mock-token-for-build
+          # Flags to skip database initialization
+          NEXT_PUBLIC_SKIP_DB_INIT=true
+          NEXT_SKIP_AUTH_CONFIG=true
           EOL
 
           # Print the environment file for debugging (without sensitive values)
-          cat .env | grep -v "SECRET\|TOKEN\|URL"
+          cat .env | grep -v "SECRET"
+
+      - name: Update next.config.js for build
+        run: |
+          # Add a temporary condition to skip connecting to the database during build
+          # This is a temporary file that won't be deployed
+          cat > next.config.build.js << EOL
+          /** @type {import('next').NextConfig} */
+          const nextConfig = {
+            output: 'standalone',
+            experimental: {
+              // Skip API routes during build to prevent database connection attempts
+              skipMiddlewareUrlNormalize: true,
+              skipTrailingSlashRedirect: true,
+            },
+          };
+
+          module.exports = nextConfig;
+          EOL
+
+          # Use the modified config for build
+          cp next.config.build.js next.config.js
 
       - name: Build application
         run: pnpm build
         env:
           # Add all environment variables needed for build
           NODE_ENV: production
-          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          # Use a mock URL for build only
+          TURSO_DATABASE_URL: libsql://mock-db-for-build.turso.io
+          TURSO_AUTH_TOKEN: mock-token-for-build
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          # Add skip flag to bypass database initialization during build if needed
+          # Add skip flags to bypass database initialization during build
           NEXT_PUBLIC_SKIP_DB_INIT: "true"
+          NEXT_SKIP_AUTH_CONFIG: "true"
+
+      - name: Restore original next.config.js
+        run: |
+          git checkout -- next.config.js
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
