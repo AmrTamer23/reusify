@@ -59,10 +59,4 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          # Install pnpm, build and start the application on the server
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && \
-          # Install pnpm if not available
-          if ! command -v pnpm &> /dev/null; then \
-            npm install -g pnpm; \
-          fi && \
-          pnpm i && pnpm build && pm2 restart"
+          ls"
