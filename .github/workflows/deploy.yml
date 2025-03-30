@@ -59,4 +59,9 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          ls"
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && \
+          npm install && \
+          npm run build && \
+          pm2 stop reusify || true && \
+          pm2 start npm --name 'reusify' -- start && \
+          pm2 save"
