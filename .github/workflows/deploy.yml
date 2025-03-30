@@ -94,7 +94,7 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           # Create and transfer compressed archive
-          tar -czf build.tar.gz package.json $([ -f "pnpm-lock.yaml" ] && echo "pnpm-lock.yaml") .next public next.config.js
+          tar -czf build.tar.gz package.json $([ -f "pnpm-lock.yaml" ] && echo "pnpm-lock.yaml") .next public next.config.ts
           scp -o ConnectTimeout=30 build.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
 
           # Extract on server
