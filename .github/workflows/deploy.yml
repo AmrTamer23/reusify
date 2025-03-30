@@ -18,13 +18,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "npm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build application
-        run: npm run build
+        run: pnpm build
         env:
           # Add any environment variables needed for build
           NODE_ENV: production
@@ -54,7 +58,10 @@ jobs:
         run: |
           # Copy package files for production dependencies
           scp package.json ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
-          scp package-lock.json ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+          # Copy pnpm lock file
+          if [ -f "pnpm-lock.yaml" ]; then
+            scp pnpm-lock.yaml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+          fi
 
           # Copy built application files
           scp -r .next ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
@@ -97,11 +104,13 @@ jobs:
           export NVM_DIR=\$HOME/.nvm
           [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
           nvm use --lts || nvm install --lts && \
+          # Install pnpm if not present
+          npm install -g pnpm && \
           # Install PM2 globally if not already installed
           npm install -g pm2 && \
           # Install only production dependencies
-          npm ci --omit=dev && \
+          pnpm install --prod && \
           # Start or restart the application
           pm2 stop reusify || true && \
-          pm2 start npm --name 'reusify' -- start && \
+          pm2 start pnpm --name 'reusify' -- start && \
           pm2 save"
