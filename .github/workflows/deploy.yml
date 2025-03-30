@@ -14,6 +14,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build
+        env:
+          # Add any environment variables needed for build
+          NODE_ENV: production
+
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -24,7 +39,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Copy repository to server
+      - name: Prepare server directory
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -32,9 +47,21 @@ jobs:
           # Create app directory on server
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p ~/apps/reusify"
 
-          # Copy application files to server
-          scp -r ./* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
-          scp -r ./.github ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+      - name: Copy built application to server
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          # Copy package files for production dependencies
+          scp package.json ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+          scp package-lock.json ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+
+          # Copy built application files
+          scp -r .next ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+          scp -r public ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+
+          # Copy any other necessary files
+          scp next.config.js ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
 
       - name: Create environment file
         env:
@@ -54,7 +81,7 @@ jobs:
           TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}
           EOL"
 
-      - name: Build and deploy on server
+      - name: Install production dependencies and start application
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -66,16 +93,14 @@ jobs:
             export NVM_DIR=\$HOME/.nvm
             [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
           fi && \
-          # Load NVM and install/use Node LTS
+          # Load NVM and use Node LTS
           export NVM_DIR=\$HOME/.nvm
           [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
-          nvm install --lts && \
-          nvm use --lts && \
+          nvm use --lts || nvm install --lts && \
           # Install PM2 globally if not already installed
           npm install -g pm2 && \
-          # Install dependencies and build
-          npm install && \
-          npm run build && \
+          # Install only production dependencies
+          npm ci --omit=dev && \
           # Start or restart the application
           pm2 stop reusify || true && \
           pm2 start npm --name 'reusify' -- start && \
