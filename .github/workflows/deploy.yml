@@ -24,6 +24,27 @@ jobs:
         with:
           version: 8
 
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            ${{ github.workspace }}/.pnpm-store
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Setup Next.js cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}-
+            ${{ runner.os }}-nextjs-
+
       - name: Install dependencies
         run: pnpm install
 
@@ -33,55 +54,22 @@ jobs:
           NODE_ENV=production
           BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
-          # Use mock database URL for build time to avoid connection issues
           TURSO_DATABASE_URL=libsql://mock-db-for-build.turso.io
           TURSO_AUTH_TOKEN=mock-token-for-build
-          # Flags to skip database initialization
           NEXT_PUBLIC_SKIP_DB_INIT=true
           NEXT_SKIP_AUTH_CONFIG=true
-          EOL
-
-          # Print the environment file for debugging (without sensitive values)
-          cat .env | grep -v "SECRET"
-
-      - name: Update next.config.js for build
-        run: |
-          # Backup original config if it exists
-          if [ -f "next.config.js" ]; then
-            cp next.config.js next.config.js.bak
-          fi
-
-          # Add a temporary condition to skip connecting to the database during build
-          # This is a temporary file that won't be deployed
-          cat > next.config.js << EOL
-          /** @type {import('next').NextConfig} */
-          const nextConfig = {
-            output: 'standalone',
-          };
-
-          module.exports = nextConfig;
           EOL
 
       - name: Build application
         run: pnpm build
         env:
-          # Add all environment variables needed for build
           NODE_ENV: production
-          # Use a mock URL for build only
           TURSO_DATABASE_URL: libsql://mock-db-for-build.turso.io
           TURSO_AUTH_TOKEN: mock-token-for-build
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
-          # Add skip flags to bypass database initialization during build
           NEXT_PUBLIC_SKIP_DB_INIT: "true"
           NEXT_SKIP_AUTH_CONFIG: "true"
-
-      - name: Restore original next.config.js
-        run: |
-          # Restore from backup if it exists
-          if [ -f "next.config.js.bak" ]; then
-            mv next.config.js.bak next.config.js
-          fi
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -98,33 +86,21 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          # Create app directory on server
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p ~/apps/reusify"
 
-      - name: Copy built application to server
+      - name: Deploy application to server
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          # Create a compressed archive of the build artifacts
-          echo "Creating compressed archive of build artifacts..."
+          # Create and transfer compressed archive
           tar -czf build.tar.gz package.json $([ -f "pnpm-lock.yaml" ] && echo "pnpm-lock.yaml") .next public next.config.js
+          scp -o ConnectTimeout=30 build.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
 
-          # Show the size of the compressed file
-          echo "Archive size:"
-          ls -lh build.tar.gz
-
-          # Copy the compressed archive with verbose output and timeout
-          echo "Copying compressed archive to server..."
-          scp -v -o ConnectTimeout=60 build.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
-
-          # Extract the archive on the server
-          echo "Extracting archive on server..."
+          # Extract on server
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && tar -xzf build.tar.gz && rm build.tar.gz"
 
-          echo "File transfer complete!"
-
-      - name: Create environment file
+      - name: Configure environment on server
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -133,7 +109,6 @@ jobs:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
         run: |
-          # Create .env file with secrets
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cat > ~/apps/reusify/.env << EOL
           NODE_ENV=production
           BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
@@ -142,29 +117,23 @@ jobs:
           TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}
           EOL"
 
-      - name: Install production dependencies and start application
+      - name: Start application
         env:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && \
-          # Check for NVM and install it if not present
+          # Setup Node environment
           if [ ! -d ~/.nvm ]; then
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
             export NVM_DIR=\$HOME/.nvm
             [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
           fi && \
-          # Load NVM and use Node LTS
-          export NVM_DIR=\$HOME/.nvm
-          [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
+          export NVM_DIR=\$HOME/.nvm && \
+          [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh && \
           nvm use --lts || nvm install --lts && \
-          # Install pnpm if not present
-          npm install -g pnpm && \
-          # Install PM2 globally if not already installed
-          npm install -g pm2 && \
-          # Install only production dependencies
+          npm install -g pnpm pm2 && \
           pnpm install --prod && \
-          # Start or restart the application
-          pm2 stop reusify || true && \
+          pm2 delete reusify || true && \
           pm2 start pnpm --name 'reusify' -- start && \
           pm2 save"
