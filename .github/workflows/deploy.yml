@@ -46,24 +46,21 @@ jobs:
 
       - name: Update next.config.js for build
         run: |
+          # Backup original config if it exists
+          if [ -f "next.config.js" ]; then
+            cp next.config.js next.config.js.bak
+          fi
+
           # Add a temporary condition to skip connecting to the database during build
           # This is a temporary file that won't be deployed
-          cat > next.config.build.js << EOL
+          cat > next.config.js << EOL
           /** @type {import('next').NextConfig} */
           const nextConfig = {
             output: 'standalone',
-            experimental: {
-              // Skip API routes during build to prevent database connection attempts
-              skipMiddlewareUrlNormalize: true,
-              skipTrailingSlashRedirect: true,
-            },
           };
 
           module.exports = nextConfig;
           EOL
-
-          # Use the modified config for build
-          cp next.config.build.js next.config.js
 
       - name: Build application
         run: pnpm build
@@ -81,7 +78,10 @@ jobs:
 
       - name: Restore original next.config.js
         run: |
-          git checkout -- next.config.js
+          # Restore from backup if it exists
+          if [ -f "next.config.js.bak" ]; then
+            mv next.config.js.bak next.config.js
+          fi
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
