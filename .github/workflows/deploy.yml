@@ -106,19 +106,23 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          # Copy package files for production dependencies
-          scp package.json ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
-          # Copy pnpm lock file
-          if [ -f "pnpm-lock.yaml" ]; then
-            scp pnpm-lock.yaml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
-          fi
+          # Create a compressed archive of the build artifacts
+          echo "Creating compressed archive of build artifacts..."
+          tar -czf build.tar.gz package.json $([ -f "pnpm-lock.yaml" ] && echo "pnpm-lock.yaml") .next public next.config.js
 
-          # Copy built application files
-          scp -r .next ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
-          scp -r public ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+          # Show the size of the compressed file
+          echo "Archive size:"
+          ls -lh build.tar.gz
 
-          # Copy any other necessary files
-          scp next.config.js ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+          # Copy the compressed archive with verbose output and timeout
+          echo "Copying compressed archive to server..."
+          scp -v -o ConnectTimeout=60 build.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:~/apps/reusify/
+
+          # Extract the archive on the server
+          echo "Extracting archive on server..."
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && tar -xzf build.tar.gz && rm build.tar.gz"
+
+          echo "File transfer complete!"
 
       - name: Create environment file
         env:
