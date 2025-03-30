@@ -27,6 +27,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Create .env file for build
+        run: |
+          cat > .env << EOL
+          NODE_ENV=production
+          BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
+          # Make sure Turso URL starts with libsql:// or https://
+          TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}
+          EOL
+
+          # Print the environment file for debugging (without sensitive values)
+          cat .env | grep -v "SECRET\|TOKEN\|URL"
+
       - name: Build application
         run: pnpm build
         env:
@@ -36,6 +50,8 @@ jobs:
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+          # Add skip flag to bypass database initialization during build if needed
+          NEXT_PUBLIC_SKIP_DB_INIT: "true"
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
