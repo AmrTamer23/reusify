@@ -60,8 +60,23 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cd ~/apps/reusify && \
+          # Check for NVM and install it if not present
+          if [ ! -d ~/.nvm ]; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+            export NVM_DIR=\$HOME/.nvm
+            [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
+          fi && \
+          # Load NVM and install/use Node LTS
+          export NVM_DIR=\$HOME/.nvm
+          [ -s \$NVM_DIR/nvm.sh ] && \. \$NVM_DIR/nvm.sh
+          nvm install --lts && \
+          nvm use --lts && \
+          # Install PM2 globally if not already installed
+          npm install -g pm2 && \
+          # Install dependencies and build
           npm install && \
           npm run build && \
+          # Start or restart the application
           pm2 stop reusify || true && \
           pm2 start npm --name 'reusify' -- start && \
           pm2 save"
