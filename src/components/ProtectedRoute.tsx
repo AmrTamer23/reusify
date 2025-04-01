@@ -23,6 +23,7 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     if (!isPending && !session) {
+      console.log("redirecting to login");
       // Redirect to login with the current path as the redirect target
       router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
     }
