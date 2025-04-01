@@ -149,7 +149,7 @@ export function Navbar() {
               <DropdownMenuItem
                 onClick={() => {
                   authClient.signOut().then(() => {
-                    window.location.href = "/login";
+                    router.push("/login");
                   });
                 }}
               >
