@@ -169,7 +169,7 @@ export function SnippetClientView({
   };
 
   return (
-    <div className="container py-6 md:py-10 mx-auto">
+    <div className="container py-6 md:py-10 mx-auto max-w-4xl">
       <div className="mb-6 flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/">
@@ -181,7 +181,7 @@ export function SnippetClientView({
         </h1>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden !gap-0 !pb-0">
         <CardHeader className="pb-3">
           {isEditing ? (
             <Input
@@ -330,7 +330,7 @@ export function SnippetClientView({
             />
           )}
 
-          <div className="flex justify-between text-sm text-muted-foreground mt-4">
+          <div className="flex justify-between text-sm text-muted-foreground my-4">
             <span>
               Created: {new Date(snippet.createdAt).toLocaleDateString()}
             </span>
@@ -339,7 +339,7 @@ export function SnippetClientView({
             </span>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between border-t p-4 bg-muted/20">
+        <CardFooter className="flex justify-between border-t p-4 bg-muted/20 !b-0">
           {isEditing ? (
             <>
               <Button

@@ -106,7 +106,7 @@ export default function NewSnippetPage() {
   };
 
   return (
-    <div className="py-6 md:py-10 mx-auto container">
+    <div className="py-6 md:py-10 mx-auto container max-w-2xl">
       <div className="mb-6 flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/">

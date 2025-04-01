@@ -100,9 +100,12 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-background">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <span className="text-[10vw] text-primary text-center font-bold font-serif">
+            R
+          </span>
           <CardTitle className="text-2xl font-bold">
             Sign in to your account
           </CardTitle>
@@ -214,7 +217,7 @@ function LoginForm() {
 
             <p className="text-center text-sm text-gray-600">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-blue-600 hover:underline">
+              <Link href="/register" className="text-accent hover:underline">
                 Create an account
               </Link>
             </p>

@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, IBM_Plex_Mono } from "next/font/google";
+import { JetBrains_Mono, Young_Serif, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
-  weight: ["400", "500", "600", "700"],
+const youngSerif = Young_Serif({
   subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-serif",
+});
+
+const josefinSans = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
@@ -35,9 +37,9 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          inter.className,
-          ibmPlexMono.className,
-          jetbrainsMono.className
+          jetbrainsMono.variable,
+          youngSerif.variable,
+          josefinSans.variable
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>

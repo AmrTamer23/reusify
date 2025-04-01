@@ -17,7 +17,7 @@ let highlighterPromise: ReturnType<typeof createHighlighter> | null = null;
 function getHighlighterInstance() {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
-      themes: ["vitesse-dark", "vitesse-light"],
+      themes: ["gruvbox-dark-soft"],
       langs: [
         "javascript",
         "typescript",
@@ -87,7 +87,7 @@ export function CodePreview({
 
         const result = highlighter.codeToHtml(codeToHighlight, {
           lang: shikiLanguage,
-          theme: theme === "dark" ? "vitesse-dark" : "vitesse-light",
+          theme: "gruvbox-dark-soft",
         });
 
         setHtml(result);

@@ -101,7 +101,7 @@ export function HomePageClient({
         {/* Sidebar with filters */}
         <aside className="w-full md:w-64 space-y-6">
           <div className="space-y-3">
-            <h3 className="font-medium text-sm">Programming Languages</h3>
+            <h3 className="font-medium text-lg">Languages</h3>
             <div className="flex flex-wrap gap-2">
               {languages.map((language) => (
                 <Badge
@@ -121,7 +121,7 @@ export function HomePageClient({
           </div>
 
           <div className="space-y-3">
-            <h3 className="font-medium text-sm">Tags</h3>
+            <h3 className="font-medium text-lg">Tags</h3>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
                 <Badge
@@ -137,7 +137,7 @@ export function HomePageClient({
           </div>
 
           <div className="pt-4">
-            <Button asChild className="w-full">
+            <Button asChild className="w-full ">
               <Link href="/new">
                 <Code className="mr-2 h-4 w-4" />
                 New Snippet
@@ -181,7 +181,7 @@ export function HomePageClient({
                   >
                     <CardHeader className="pb-2 pt-4 px-4">
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-medium line-clamp-2">
+                        <CardTitle className="text-2xl font-medium line-clamp-2">
                           {snippet.title}
                         </CardTitle>
                       </div>

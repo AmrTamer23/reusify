@@ -148,8 +148,9 @@ export function Navbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  authClient.signOut();
-                  router.push("/login");
+                  authClient.signOut().then(() => {
+                    window.location.href = "/login";
+                  });
                 }}
               >
                 <LogOutIcon className="h-4 w-4 mr-2" />
