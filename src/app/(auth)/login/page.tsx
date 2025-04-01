@@ -49,8 +49,9 @@ function LoginForm() {
           .then((res) => {
             if (res.error?.status) {
               throw new Error(res.error.message);
+            } else {
+              router.push("/");
             }
-            router.push("/");
           })
           .catch((error) => {
             setServerError(
