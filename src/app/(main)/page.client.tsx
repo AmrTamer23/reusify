@@ -85,12 +85,12 @@ export function HomePageClient({
     }
 
     // Filter by tags if any selected
-    // if (
-    //   activeTags.length > 0 &&
-    //   !snippet.tags.some((tag) => activeTags.includes(tag))
-    // ) {
-    //   return false;
-    // }
+    if (
+      activeTags.length > 0 &&
+      !snippet.tags.some((tag) => activeTags.includes(tag.name))
+    ) {
+      return false;
+    }
 
     return true;
   });

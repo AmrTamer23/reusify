@@ -26,6 +26,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   snippets      Snippet[]
+  tags Tag[] 
 
   @@map("user")
 }
@@ -90,4 +91,6 @@ model Tag {
   id        String    @id @default(uuid())
   name      String    @unique
   snippets  Snippet[] @relation("SnippetTags")
+
+  User User[]
 }
