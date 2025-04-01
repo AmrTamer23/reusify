@@ -10,6 +10,10 @@ export function middleware(request: NextRequest) {
       : "__Secure-reusify.session_token"
   );
 
+  console.log(isAuthenticated);
+
+  console.log(request.cookies);
+
   const authRoutes = ["/login", "/register"];
 
   const protectedRoutes = ["/new", "/snippet", "/search"];
