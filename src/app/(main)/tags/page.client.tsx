@@ -76,7 +76,11 @@ export function TagsPageClient({
         if (result.tag) {
           setTags((prevTags) => [
             ...prevTags,
-            { ...result.tag, _count: { snippets: 0 } },
+            {
+              ...result.tag,
+              userId: result.tag.userId || prevTags[0]?.userId || "",
+              _count: { snippets: 0 },
+            },
           ]);
         }
         setNewTagName("");
