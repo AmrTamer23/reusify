@@ -42,6 +42,13 @@ export async function createTag(data: { name: string }) {
         name: data.name,
         userId: session.user.id,
       },
+      include: {
+        _count: {
+          select: {
+            snippets: true,
+          },
+        },
+      },
     });
 
     return { success: true, tag };
@@ -79,6 +86,13 @@ export async function updateTag(data: { id: string; name: string }) {
       },
       data: {
         name: data.name,
+      },
+      include: {
+        _count: {
+          select: {
+            snippets: true,
+          },
+        },
       },
     });
 
