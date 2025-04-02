@@ -1,25 +1,22 @@
 import { SnippetClientView } from "./page.client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
-import { db } from "../../../../../prisma/instance";
+import { getSnippet } from "@/app/actions/snippets";
+import { getTags } from "@/app/actions/tags";
 
 export default async function SnippetPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const snippetPromise = db.snippet.findUnique({
-    where: {
-      id: (await params).id,
-    },
-    include: {
-      tags: true,
-    },
-  });
-
+  const snippetPromise = getSnippet((await params).id);
+  const tagsPromise = getTags();
   return (
     <Suspense fallback={<SnippetSkeleton />}>
-      <SnippetClientView snippetPromise={snippetPromise} />
+      <SnippetClientView
+        snippetPromise={snippetPromise}
+        tagsPromise={tagsPromise}
+      />
     </Suspense>
   );
 }

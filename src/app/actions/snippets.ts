@@ -5,6 +5,50 @@ import { headers } from "next/headers";
 import { db } from "../../../prisma/instance";
 import type { Snippet } from "@prisma/client";
 
+export async function getSnippets() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
+
+  const snippets = db.snippet.findMany({
+    where: {
+      userId: session?.user?.id,
+    },
+    include: {
+      tags: true,
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  return snippets;
+}
+
+export async function getSnippet(id: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
+
+  const snippet = db.snippet.findUnique({
+    where: {
+      id: id,
+    },
+    include: {
+      tags: true,
+    },
+  });
+
+  return snippet;
+}
+
 export async function createSnippet(data: {
   title: string;
   language: string;
@@ -29,7 +73,7 @@ export async function createSnippet(data: {
         tags: {
           connectOrCreate: data.tags.map((tag) => ({
             where: { name: tag },
-            create: { name: tag },
+            create: { name: tag, userId: session.user.id },
           })),
         },
       },
@@ -47,7 +91,7 @@ export async function updateSnippet(data: {
   title: string;
   language: string;
   content: string;
-  tags: string[];
+  tags: { id: string }[];
 }) {
   try {
     const session = await auth.api.getSession({
@@ -77,11 +121,7 @@ export async function updateSnippet(data: {
         content: data.content,
         language: data.language,
         tags: {
-          set: [],
-          connectOrCreate: data.tags.map((tag) => ({
-            where: { name: tag },
-            create: { name: tag },
-          })),
+          connect: data.tags.map((tag) => ({ id: tag.id })),
         },
       },
       include: {

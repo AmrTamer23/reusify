@@ -1,14 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
-    previewFeatures = ["driverAdapters"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
-
 
 datasource db {
   provider = "sqlite"
@@ -16,7 +9,7 @@ datasource db {
 }
 
 model User {
-  id            String       @id 
+  id            String    @id
   email         String    @unique
   name          String?
   emailVerified Boolean
@@ -26,7 +19,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   snippets      Snippet[]
-  tags Tag[] 
+  tags          Tag[]
 
   @@map("user")
 }
@@ -54,7 +47,7 @@ model Account {
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
-  idToken              String?
+  idToken               String?
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
   scope                 String?
@@ -77,20 +70,21 @@ model Verification {
 }
 
 model Snippet {
-  id        String    @id @default(uuid())
+  id        String   @id @default(uuid())
   title     String
   content   String
-  language  String   
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  tags      Tag[]     @relation("SnippetTags")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  tags      Tag[]    @relation("SnippetTags")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-model Tag {
-  id        String    @id @default(uuid())
-  name      String    @unique
-  snippets  Snippet[] @relation("SnippetTags")
 
-  User User[]
+model Tag {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  snippets Snippet[] @relation("SnippetTags")
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
 }

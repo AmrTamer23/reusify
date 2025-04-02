@@ -1,24 +1,10 @@
-import { auth } from "@/lib/auth";
 import { HomePageClient } from "./page.client";
-import { headers } from "next/headers";
-import { db } from "../../../prisma/instance";
+import { getSnippets } from "../actions/snippets";
+import { getTags } from "../actions/tags";
 
 export default async function HomePage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const snippets = getSnippets();
+  const tags = getTags();
 
-  const snippets = db.snippet.findMany({
-    where: {
-      userId: session?.user?.id,
-    },
-    include: {
-      tags: true,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
-
-  return <HomePageClient snippetsPromise={snippets} />;
+  return <HomePageClient snippetsPromise={snippets} tagsPromise={tags} />;
 }

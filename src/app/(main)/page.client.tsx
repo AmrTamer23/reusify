@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Code } from "lucide-react";
-
 import type { Snippet, Tag } from "@prisma/client";
 
 // Sample data - would be fetched from API in a real app
@@ -20,17 +19,6 @@ const languages = [
   "CSS",
   "SQL",
   "Bash",
-];
-
-const tags = [
-  "React",
-  "Next.js",
-  "API",
-  "Auth",
-  "Database",
-  "Utility",
-  "Animation",
-  "Algorithm",
 ];
 
 function getLanguageColor(language: string): string {
@@ -63,13 +51,15 @@ function getContentLengthLabel(content: string): string {
 
 export function HomePageClient({
   snippetsPromise,
+  tagsPromise,
 }: {
   snippetsPromise: Promise<(Snippet & { tags: Tag[] })[]>;
+  tagsPromise: Promise<Tag[]>;
 }) {
   const [activeLanguage, setActiveLanguage] = useState<string | null>(null);
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const snippets = use(snippetsPromise);
-
+  const tags = use(tagsPromise);
   const toggleTag = (tag: string) => {
     setActiveTags((current) =>
       current.includes(tag)
@@ -87,7 +77,7 @@ export function HomePageClient({
     // Filter by tags if any selected
     if (
       activeTags.length > 0 &&
-      !snippet.tags.some((tag) => activeTags.includes(tag.name))
+      !snippet.tags.some((tag) => activeTags.includes(tag.id))
     ) {
       return false;
     }
@@ -125,12 +115,12 @@ export function HomePageClient({
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
                 <Badge
-                  key={tag}
-                  variant={activeTags.includes(tag) ? "default" : "outline"}
+                  key={tag.id}
+                  variant={activeTags.includes(tag.id) ? "default" : "outline"}
                   className="cursor-pointer"
-                  onClick={() => toggleTag(tag)}
+                  onClick={() => toggleTag(tag.id)}
                 >
-                  {tag}
+                  {tag.name}
                 </Badge>
               ))}
             </div>

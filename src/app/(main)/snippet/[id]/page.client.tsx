@@ -45,30 +45,22 @@ const languages = [
   "Bash",
 ];
 
-const availableTags = [
-  "React",
-  "Next.js",
-  "API",
-  "Auth",
-  "Database",
-  "Utility",
-  "Animation",
-  "Algorithm",
-];
-
 export function SnippetClientView({
   snippetPromise,
+  tagsPromise,
 }: {
   snippetPromise: Promise<(Snippet & { tags: Tag[] }) | null>;
+  tagsPromise: Promise<Tag[]>;
 }) {
   const snippetData = use(snippetPromise);
+  const tagsData = use(tagsPromise);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [snippet, setSnippet] = useState<(Snippet & { tags: Tag[] }) | null>(
     snippetData
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(
-    snippetData?.tags.map((tag) => tag.name) || []
+    snippetData?.tags.map((tag) => tag.id) || []
   );
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -98,11 +90,11 @@ export function SnippetClientView({
     );
   }
 
-  const handleTagToggle = (tag: string) => {
+  const handleTagToggle = (tagId: string) => {
     setSelectedTags((current) =>
-      current.includes(tag)
-        ? current.filter((t) => t !== tag)
-        : [...current, tag]
+      current.includes(tagId)
+        ? current.filter((t) => t !== tagId)
+        : [...current, tagId]
     );
   };
 
@@ -120,12 +112,13 @@ export function SnippetClientView({
     setIsSubmitting(true);
 
     try {
+      console.log(snippet.tags);
       const result = await updateSnippet({
         id: snippet.id,
         title: snippet.title,
         content: snippet.content,
         language: snippet.language,
-        tags: selectedTags,
+        tags: selectedTags.map((tagId) => ({ id: tagId })),
       });
 
       if (result.success) {
@@ -245,14 +238,16 @@ export function SnippetClientView({
                 <div className="mb-2 w-full">
                   <label className="block text-lg font-medium mb-1">Tags</label>
                 </div>
-                {availableTags.map((tag) => (
+                {tagsData.map((tag) => (
                   <Badge
-                    key={tag}
-                    variant={selectedTags.includes(tag) ? "default" : "outline"}
+                    key={tag.id}
+                    variant={
+                      selectedTags.includes(tag.id) ? "default" : "outline"
+                    }
                     className="cursor-pointer text-base"
-                    onClick={() => handleTagToggle(tag)}
+                    onClick={() => handleTagToggle(tag.id)}
                   >
-                    {tag}
+                    {tagsData.find((t) => t.id === tag.id)?.name}
                   </Badge>
                 ))}
               </>
@@ -264,7 +259,12 @@ export function SnippetClientView({
                     variant="outline"
                     className="cursor-pointer text-base"
                   >
-                    {tag.name}
+                    {tagsData.find((t) => t.id === tag.id)?.name}
+                    {
+                      console.log(
+                        tagsData.find((t) => t.id === tag.id)
+                      ) as never
+                    }
                   </Badge>
                 ))}
               </>
