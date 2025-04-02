@@ -78,7 +78,7 @@ export function TagsPageClient({
             ...prevTags,
             {
               ...result.tag,
-              userId: result.tag.userId ?? prevTags[0]?.userId ?? "",
+              userId: prevTags[0]?.userId ?? "",
               _count: { snippets: 0 },
             },
           ]);
