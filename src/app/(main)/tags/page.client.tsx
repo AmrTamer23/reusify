@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, X, Save, Tag as TagIcon } from "lucide-react";
-import type { Tag } from "@prisma/client";
 
 export function TagsPageClient({
   tagsPromise,
@@ -45,7 +44,11 @@ export function TagsPageClient({
       _count: {
         snippets: number;
       };
-    } & Tag)[]
+    } & {
+      id: string;
+      name: string;
+      userId: string;
+    })[]
   >;
 }) {
   const initialTags = use(tagsPromise);
