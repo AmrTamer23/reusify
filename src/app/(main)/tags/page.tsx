@@ -4,7 +4,17 @@ import { Suspense } from "react";
 import { getTags } from "@/app/actions/tags";
 
 export default async function TagsPage() {
-  const tagsPromise = getTags();
+  const tagsPromise = getTags() as Promise<
+    ({
+      _count: {
+        snippets: number;
+      };
+    } & {
+      id: string;
+      name: string;
+      userId: string;
+    })[]
+  >;
 
   return (
     <Suspense fallback={<TagsSkeleton />}>
