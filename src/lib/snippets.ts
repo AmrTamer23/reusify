@@ -1,4 +1,6 @@
+import { headers } from "next/headers";
 import { db } from "../../prisma/instance";
+import { auth } from "./auth";
 
 export interface Snippet {
   id: string;
@@ -42,6 +44,14 @@ export async function updateSnippet(
     tags?: string[];
   }
 ): Promise<Snippet | null> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
+
   try {
     // If tags are provided, handle the tag relationships
     if (data.tags) {
@@ -65,7 +75,7 @@ export async function updateSnippet(
           tags: {
             connectOrCreate: data.tags.map((tagName) => ({
               where: { name: tagName },
-              create: { name: tagName },
+              create: { name: tagName, userId: session.user.id },
             })),
           },
         },

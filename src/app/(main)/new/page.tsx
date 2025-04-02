@@ -88,7 +88,7 @@ export default function NewSnippetPage() {
         title: newSnippet.title,
         language: newSnippet.language,
         content: newSnippet.content,
-        tags: selectedTags,
+        tags: selectedTags.map((tag) => ({ id: tag, name: tag })),
       });
 
       if (result.success) {

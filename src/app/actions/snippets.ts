@@ -53,7 +53,7 @@ export async function createSnippet(data: {
   title: string;
   language: string;
   content: string;
-  tags: string[];
+  tags: { id: string; name: string }[];
 }) {
   try {
     const session = await auth.api.getSession({
@@ -72,8 +72,11 @@ export async function createSnippet(data: {
         userId: session.user.id,
         tags: {
           connectOrCreate: data.tags.map((tag) => ({
-            where: { name: tag },
-            create: { name: tag, userId: session.user.id },
+            where: { name: tag.name },
+            create: {
+              name: tag.name,
+              userId: session.user.id,
+            },
           })),
         },
       },
