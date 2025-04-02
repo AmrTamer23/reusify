@@ -13,9 +13,7 @@ export async function getTags() {
 
   const tags = await db.tag.findMany({
     where: {
-      user: {
-        id: session.user.id,
-      },
+      userId: session.user.id,
     },
     include: {
       _count: {
@@ -42,11 +40,7 @@ export async function createTag(data: { name: string }) {
     const tag = await db.tag.create({
       data: {
         name: data.name,
-        user: {
-          connect: {
-            id: session.user.id,
-          },
-        },
+        userId: session.user.id,
       },
     });
 
@@ -71,9 +65,7 @@ export async function updateTag(data: { id: string; name: string }) {
     const existingTag = await db.tag.findFirst({
       where: {
         id: data.id,
-        user: {
-          id: session.user.id,
-        },
+        userId: session.user.id,
       },
     });
 
@@ -111,9 +103,7 @@ export async function deleteTag(id: string) {
     const existingTag = await db.tag.findFirst({
       where: {
         id,
-        user: {
-          id: session.user.id,
-        },
+        userId: session.user.id,
       },
     });
 
